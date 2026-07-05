@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "NestJS Vault Local Demo",
+    "description": "Smoke tests for local NestJS + Vault + PostgreSQL + Redis + RabbitMQ demo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "itemId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('health returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "pm.test('all services are up', function () {",
+              "  pm.expect(body.app).to.eql('up');",
+              "  pm.expect(body.postgres).to.eql('up');",
+              "  pm.expect(body.redis).to.eql('up');",
+              "  pm.expect(body.rabbitmq).to.eql('up');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vault demo item\",\n  \"description\": \"Created from Postman collection\"\n}"
+        },
+        "url": "{{baseUrl}}/items"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('create returns 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "pm.test('created item has id', function () {",
+              "  pm.expect(body.id).to.be.a('number');",
+              "  pm.expect(body.name).to.eql('Vault demo item');",
+              "});",
+              "pm.collectionVariables.set('itemId', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Items",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/items"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('list returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('list returns array', function () {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Item",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/items/{{itemId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('get returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('get returns selected item', function () {",
+              "  pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('itemId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update Item",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated from Postman collection\"\n}"
+        },
+        "url": "{{baseUrl}}/items/{{itemId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('update returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('description updated', function () {",
+              "  pm.expect(pm.response.json().description).to.eql('Updated from Postman collection');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Item",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/items/{{itemId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('delete returns 204', function () {",
+              "  pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
